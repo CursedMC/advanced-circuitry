@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=east": {
+			"model": "adv_circ:block/ic"
+		},
+		"facing=south": {
+			"model": "adv_circ:block/ic",
+			"y": 90
+		},
+		"facing=west": {
+			"model": "adv_circ:block/ic",
+			"y": 180
+		},
+		"facing=north": {
+			"model": "adv_circ:block/ic",
+			"y": 270
+		}
+	}
+}

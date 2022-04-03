@@ -1,11 +1,12 @@
 {
   "required": true,
-  "package": "net.fabricmc.example.mixin",
+  "package": "dev.cursedmc.ac.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
   ],
   "client": [
-    "ExampleMixin"
+  ],
+  "server": [
   ],
   "injectors": {
     "defaultRequire": 1

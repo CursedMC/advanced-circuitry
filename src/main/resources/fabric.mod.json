@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "adv_circ",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Advanced Circuitry",
+  "description": "An advanced PCB/Circuit mod for Minecraft.",
   "authors": [
-    "Me!"
+    "CursedMC",
+    "Tehc"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/CursedMC/advanced-circuitry"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "Apache-2.0",
+  "icon": "assets/adv_circ/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleModKt::init"
+      "dev.cursedmc.ac.ModKt::init"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "adv_circ.mixin.json"
   ],
   "depends": {
     "fabricloader": ">=0.8.7",
     "fabric": "*",
     "fabric-language-kotlin": "*",
-    "minecraft": "1.17.x"
+    "minecraft": "~1.18.2"
   },
-  "suggests": {
-    "flamingo": "*"
+  "conflicts": {
+    "optifabric": "*"
   }
 }
