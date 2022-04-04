@@ -49,7 +49,7 @@ object Blocks : Initializable {
 					SOUTH -> VoxelShapes.cuboid(0.1875, 0.0, 0.0, 0.8125, 0.25, 1.0)
 					WEST -> VoxelShapes.cuboid(0.0, 0.0, 0.1875, 1.0, 0.25, 0.8125)
 					EAST -> VoxelShapes.cuboid(0.0, 0.0, 0.1875, 1.0, 0.25, 0.8125)
-					else -> VoxelShapes.fullCube()
+					else -> VoxelShapes.fullCube() // there is no whey this would be happened
 				}
 			}
 		},
