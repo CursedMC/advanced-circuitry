@@ -11,13 +11,15 @@ import net.minecraft.item.ItemGroup
  * @param I Class with items
  * @param B Class with blocks
  */
-interface Feature<I : Initializable, B : Initializable> : Initializable {
+interface Feature<I : Initializable, B : Initializable, BE : Initializable> : Initializable {
 	fun name(): String
 	fun group(): ItemGroup
 	fun items(): I
 	fun blocks(): B
+	fun blockEntityType(): BE
 	override fun initialize() {
 		items().initialize()
 		blocks().initialize()
+		blockEntityType().initialize()
 	}
 }

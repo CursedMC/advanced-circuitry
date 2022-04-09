@@ -1,21 +1,21 @@
-package dev.cursedmc.ac.features.pcb
+package dev.cursedmc.ac.features.circuit
 
 import dev.cursedmc.ac.features.Feature
-import dev.cursedmc.ac.features.pcb.block.Blocks
-import dev.cursedmc.ac.features.pcb.block.entity.BlockEntityType
+import dev.cursedmc.ac.features.circuit.block.Blocks
+import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityType
 import dev.cursedmc.libreg.registry.ident
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 
-object PCBFeature : Feature<Items, Blocks, BlockEntityType> {
+object CircuitFeature : Feature<Items, Blocks, BlockEntityType> {
 	private val GROUP = FabricItemGroupBuilder
-		.create(ident("pcb_group"))
-		.icon { return@icon ItemStack(blocks().PCB.second) }
+		.create(ident("circuit_group"))
+		.icon { return@icon ItemStack(blocks().IC.second) }
 		.build()
 	
 	override fun name(): String {
-		return "PCB Feature"
+		return "Circuit Feature"
 	}
 	
 	override fun group(): ItemGroup {

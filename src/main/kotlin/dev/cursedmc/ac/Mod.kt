@@ -1,5 +1,6 @@
 package dev.cursedmc.ac
 
+import dev.cursedmc.ac.features.circuit.CircuitFeature
 import dev.cursedmc.ac.features.pcb.PCBFeature
 import dev.cursedmc.ac.util.info
 import dev.cursedmc.libreg.registry.ns
@@ -13,4 +14,5 @@ fun init() {
 	
 	// Feature Initialization
 	PCBFeature.initialize()
+	CircuitFeature.initialize()
 }

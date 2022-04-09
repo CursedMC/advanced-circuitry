@@ -1,6 +1,6 @@
 {
 	"parent": "item/generated",
 	"textures": {
-		"layer0": "adv_circ:item/ic"
+		"layer0": "adv_circ:block/pcb_base"
 	}
 }

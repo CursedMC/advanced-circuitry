@@ -1,0 +1,10 @@
+{
+	"variants": {
+		"with_ic=false": {
+			"model": "adv_circ:block/pcb_base"
+		},
+		"with_ic=true": {
+			"model": "adv_circ:block/pcb_with_ic"
+		}
+	}
+}
