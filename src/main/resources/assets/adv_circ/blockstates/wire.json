@@ -1,0 +1,224 @@
+{
+	"multipart": [
+		{
+			"when": {
+				"OR": [
+					{
+						"powered": false,
+						"west": "none",
+						"east": "none",
+						"south": "none",
+						"north": "none"
+					},
+					{
+						"powered": false,
+						"north": "side|up"
+					},
+					{
+						"powered": false,
+						"east": "side|up"
+					},
+					{
+						"powered": false,
+						"south": "side|up"
+					},
+					{
+						"powered": false,
+						"west": "side|up"
+					}
+				]
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_dot"
+			}
+		},
+		{
+			"when": {
+				"OR": [
+					{
+						"powered": true,
+						"west": "none",
+						"east": "none",
+						"south": "none",
+						"north": "none"
+					},
+					{
+						"powered": true,
+						"north": "side|up"
+					},
+					{
+						"powered": true,
+						"east": "side|up"
+					},
+					{
+						"powered": true,
+						"south": "side|up"
+					},
+					{
+						"powered": true,
+						"west": "side|up"
+					}
+				]
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_dot"
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"north": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_north"
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"north": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_north"
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"south": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_north",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"south": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_north",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"east": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_north",
+				"y": -270
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"east": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_north",
+				"y": -270
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"west": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_north",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"west": "side|up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_north",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"north": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_up"
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"north": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_up"
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"east": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_up",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"east": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_up",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"south": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_up",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"south": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_up",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"powered": false,
+				"west": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/wire_up",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"powered": true,
+				"west": "up"
+			},
+			"apply": {
+				"model": "adv_circ:block/wire/powered/wire_up",
+				"y": 270
+			}
+		}
+	]
+}

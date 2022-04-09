@@ -70,6 +70,10 @@ repositories {
 	}
 }
 
+loom {
+	accessWidenerPath.set(file("src/main/resources/adv_circ.accesswidener"))
+}
+
 val modImplementationInclude by configurations.register("modImplementationInclude")
 
 dependencies {

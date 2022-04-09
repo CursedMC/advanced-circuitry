@@ -2,11 +2,11 @@ package dev.cursedmc.ac.features.circuit
 
 import net.minecraft.util.StringIdentifiable
 
-enum class Powered(name: String) : StringIdentifiable {
-	LEFT("left"),
-	RIGHT("right"),
-	BOTH("both"),
-	NONE("none"),
+enum class Powered : StringIdentifiable {
+	LEFT,
+	RIGHT,
+	BOTH,
+	NONE,
 	;
 	
 	override fun asString(): String {
