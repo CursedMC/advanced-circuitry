@@ -14,7 +14,9 @@ import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Direction.*
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.world.BlockView
+import net.minecraft.world.World
 import net.minecraft.world.WorldAccess
+import net.minecraft.world.WorldView
 
 @Suppress("OVERRIDE_DEPRECATION")
 class WireBlock : Block(
@@ -26,7 +28,7 @@ class WireBlock : Block(
 	init {
 		this.defaultState = this.defaultState.with(WIRE_CONNECTION_NORTH, WireConnection.NONE).with(WIRE_CONNECTION_EAST, WireConnection.NONE).with(WIRE_CONNECTION_SOUTH, WireConnection.NONE).with(WIRE_CONNECTION_WEST, WireConnection.NONE).with(POWERED, false)
 		
-		if (true) true
+//		if (true) true
 	}
 	
 	override fun getOutlineShape(
@@ -38,6 +40,78 @@ class WireBlock : Block(
 		return SHAPE
 	}
 	
+	override fun neighborUpdate(
+		state: BlockState?,
+		world: World?,
+		pos: BlockPos?,
+		block: Block?,
+		fromPos: BlockPos?,
+		notify: Boolean,
+	) {
+		if (world!!.isClient) return // just in case (like mojang does it!)
+		
+		if (!state!!.canPlaceAt(world, pos)) { // make sure we're on a full block face
+			dropStacks(state, world, pos)
+			world.removeBlock(pos, false)
+		} else {
+			powerUpdate(world, pos!!, state, fromPos!!)
+		}
+	}
+	
+	private fun powerUpdate(
+		world: World,
+		pos: BlockPos,
+		state: BlockState,
+		fromPos: BlockPos,
+	) {
+		// power self-check and update
+		val fromState = world.getBlockState(fromPos)
+		val powered = state.get(POWERED)
+		if (fromState.contains(POWERED)) { // just in case our source does have the "powered" property
+			world.setBlockState(pos, state.with(POWERED, fromState.get(POWERED)))
+//			if (!fromState.get(POWERED) && powered) { // validate power source
+//				return
+//			}
+		}
+
+		if (world.getBlockState(pos).get(POWERED) != powered) {
+			// find neighbors
+			val directions = listOf(NORTH, EAST, SOUTH, WEST)
+			val neighbors = mutableListOf<BlockPos>() // neighbors pending update
+			for (vert in -1..1) {
+//				if (vert == 0) continue
+				val vertOffset = pos.offset(Axis.Y, vert)
+				for (dir in directions) {
+					val neighborPos = vertOffset.offset(dir)
+					val neighborState = world.getBlockState(neighborPos)
+					if (neighborState.block !is WireBlock) continue
+					neighbors.add(neighborPos)
+				}
+			}
+			
+			// propagate power to our neighbors
+			for (neighborPos in neighbors) {
+				val neighborState = world.getBlockState(neighborPos)
+				world.updateNeighbor(neighborPos, neighborState.block, pos)
+			}
+		}
+	}
+	
+	override fun getWeakRedstonePower(
+		state: BlockState?,
+		world: BlockView?,
+		pos: BlockPos?,
+		direction: Direction?
+	): Int {
+		return if (state!!.get(POWERED)) {
+			15
+		} else 0
+	}
+	
+	override fun canPlaceAt(state: BlockState?, world: WorldView?, pos: BlockPos?): Boolean {
+		return world?.getBlockState(pos?.down())?.isSideSolidFullSquare(world, pos, UP)!!
+	}
+	
 	/**
 	 * cursed mojang shit i never want to touch again
 	 */
@@ -47,7 +121,7 @@ class WireBlock : Block(
 		neighborState: BlockState?,
 		world: WorldAccess?,
 		pos: BlockPos?,
-		neighborPos: BlockPos?
+		neighborPos: BlockPos?,
 	): BlockState {
 		val directions: MutableList<Direction> = mutableListOf()
 		if (neighborState?.block is WireBlock) {
@@ -60,21 +134,100 @@ class WireBlock : Block(
 			}
 		}
 		
-		var newState = defaultState
+		var newState = state
 		
 		for (dir in directions) {
 			newState = when (dir) {
 				NORTH -> {
-					newState.with(WIRE_CONNECTION_NORTH, WireConnection.SIDE)
+					newState?.with(WIRE_CONNECTION_NORTH, WireConnection.SIDE)
 				}
 				SOUTH -> {
-					newState.with(WIRE_CONNECTION_SOUTH, WireConnection.SIDE)
+					newState?.with(WIRE_CONNECTION_SOUTH, WireConnection.SIDE)
 				}
 				WEST -> {
-					newState.with(WIRE_CONNECTION_WEST, WireConnection.SIDE)
+					newState?.with(WIRE_CONNECTION_WEST, WireConnection.SIDE)
 				}
 				EAST -> {
-					newState.with(WIRE_CONNECTION_EAST, WireConnection.SIDE)
+					newState?.with(WIRE_CONNECTION_EAST, WireConnection.SIDE)
+				}
+				else -> newState
+			}
+		}
+		
+		return getStateForVerticalNeighbors(newState, world, pos)
+	}
+	
+	override fun prepare(state: BlockState?, world: WorldAccess?, pos: BlockPos?, flags: Int, maxUpdateDepth: Int) {
+		// update neighbors above
+		val directions = listOf(NORTH, EAST, SOUTH, WEST)
+		val upPos = pos?.offset(UP)
+		for (dir in directions) {// go through every neighbor of the block above us
+			val neighborPos = upPos?.offset(dir)
+			val neighborState = world?.getBlockState(neighborPos) // the block state we're fucking with
+			if (neighborState?.block !is WireBlock) continue
+			replace(neighborState, neighborState.with(EnumProperty.of(dir.opposite.name.lowercase(), WireConnection::class.java), WireConnection.SIDE), world, neighborPos, flags, maxUpdateDepth)
+		}
+		
+		// update neighbors below
+		val downPos = pos?.offset(DOWN)
+		for (dir in directions) {// go through every neighbor of the block below us
+			val neighborPos = downPos?.offset(dir)
+			val neighborState = world?.getBlockState(neighborPos) // the block state we're fucking with
+			if (neighborState?.block !is WireBlock) continue
+			replace(neighborState, neighborState.with(EnumProperty.of(dir.opposite.name.lowercase(), WireConnection::class.java), WireConnection.UP), world, neighborPos, flags, maxUpdateDepth)
+		}
+	}
+	
+	override fun onBroken(world: WorldAccess?, pos: BlockPos?, state: BlockState?) {
+		disconnectFromNeighbors(world, pos)
+	}
+	
+	private fun disconnectFromNeighbors(world: WorldAccess?, pos: BlockPos?) {
+		// update neighbors above
+		val upPos = pos?.offset(UP)
+		disconnectFrom(world, upPos)
+		
+		// update neighbors below
+		val downPos = pos?.offset(DOWN)
+		disconnectFrom(world, downPos)
+		
+		// update horizontal neighbors
+		disconnectFrom(world, pos)
+	}
+	
+	private fun disconnectFrom(world: WorldAccess?, pos: BlockPos?) {
+		val directions = listOf(NORTH, EAST, SOUTH, WEST)
+		for (dir in directions) {
+			val neighborPos = pos?.offset(dir)
+			val neighborState = world?.getBlockState(neighborPos) // the block state we're fucking with
+			if (neighborState?.block !is WireBlock) continue // make sure our neighbor is one of us
+			replace(neighborState, neighborState.with(EnumProperty.of(dir.opposite.name.lowercase(), WireConnection::class.java), WireConnection.NONE), world, neighborPos, 0)
+		}
+	}
+	
+	private fun getStateForVerticalNeighbors(
+		state: BlockState?,
+		world: WorldAccess?,
+		pos: BlockPos?,
+	): BlockState {
+		// update self
+		val directions = listOf(NORTH, EAST, SOUTH, WEST)
+		val upPos = pos?.offset(UP)
+		var newState = state!!
+		for (dir in directions) {
+			if (world?.getBlockState(upPos?.offset(dir))?.block !is WireBlock) continue
+			newState = when (dir) {
+				NORTH -> {
+					newState.with(WIRE_CONNECTION_NORTH, WireConnection.UP)
+				}
+				EAST -> {
+					newState.with(WIRE_CONNECTION_EAST, WireConnection.UP)
+				}
+				SOUTH -> {
+					newState.with(WIRE_CONNECTION_SOUTH, WireConnection.UP)
+				}
+				WEST -> {
+					newState.with(WIRE_CONNECTION_WEST, WireConnection.UP)
 				}
 				else -> newState
 			}

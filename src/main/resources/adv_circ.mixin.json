@@ -3,6 +3,8 @@
   "package": "dev.cursedmc.ac.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "power.AbstractBlockMixin",
+    "power.AbstractBlockStateMixin"
   ],
   "client": [
   ],
