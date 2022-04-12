@@ -13,7 +13,7 @@ object Blocks : Initializable {
 			.group(CircuitFeature.group())
 	)
 	
-	val WIRE = blockItem(
+	val WIRE_BLOCK = blockItem(
 		"wire",
 		WireBlock(),
 		FabricItemSettings()
