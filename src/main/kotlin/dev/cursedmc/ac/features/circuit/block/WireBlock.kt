@@ -38,7 +38,7 @@ class WireBlock : Block(
 		state: BlockState,
 		world: BlockView,
 		pos: BlockPos,
-		context: ShapeContext
+		context: ShapeContext,
 	): VoxelShape {
 		return SHAPE
 	}
@@ -63,7 +63,7 @@ class WireBlock : Block(
 		state: BlockState,
 		world: BlockView,
 		pos: BlockPos,
-		direction: Direction
+		direction: Direction,
 	): Int {
 		return if (state.get(POWERED)) {
 			15
