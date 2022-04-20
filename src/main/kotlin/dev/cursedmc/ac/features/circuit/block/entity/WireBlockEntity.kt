@@ -11,10 +11,10 @@ import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 
 class WireBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(BlockEntityType.WIRE_BLOCK, pos, state) {
-	var powerSource: BlockPos = pos
+	var powerSource: BlockPos? = pos
 	
 	override fun writeNbt(nbt: NbtCompound) {
-		nbt.putIntArray("powerSource", powerSource.toIntArray())
+		nbt.putIntArray("powerSource", powerSource?.toIntArray() ?: pos.toIntArray())
 		
 		super.writeNbt(nbt)
 	}

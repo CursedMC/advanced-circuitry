@@ -1,5 +1,6 @@
 package dev.cursedmc.ac.features.circuit.block
 
+import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityType
 import dev.cursedmc.ac.features.circuit.block.entity.WireBlockEntity
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.Block
@@ -28,6 +29,8 @@ class WireBlock : Block(
 		.collidable(false)
 		.nonOpaque()
 ), BlockEntityProvider {
+	private var givesPower = false
+	
 	init {
 		this.defaultState = this.defaultState.with(WIRE_CONNECTION_NORTH, WireConnection.NONE).with(WIRE_CONNECTION_EAST, WireConnection.NONE).with(WIRE_CONNECTION_SOUTH, WireConnection.NONE).with(WIRE_CONNECTION_WEST, WireConnection.NONE).with(POWERED, false)
 		
@@ -56,7 +59,59 @@ class WireBlock : Block(
 		if (!state.canPlaceAt(world, pos)) { // make sure we're on a full block face
 			dropStacks(state, world, pos)
 			world.removeBlock(pos, false)
+		} else {
+			powerUpdate(state, world, pos, fromPos)
 		}
+	}
+	
+	private fun powerUpdate(
+		state: BlockState,
+		world: World,
+		pos: BlockPos,
+		fromPos: BlockPos,
+	) {
+		val entity = world.getBlockEntity(pos, BlockEntityType.WIRE_BLOCK).get()
+		// re-check powerSource
+		if (entity.powerSource != null && !world.getBlockState(entity.powerSource).contains(POWERED)) { // if we don't have a powerSource, reset it
+			entity.powerSource = null
+		}
+		
+		val stateFrom = world.getBlockState(fromPos)
+		if (!stateFrom.isOf(this) && stateFrom.contains(POWERED)) { // check if this is a power source
+			// set the powerSource
+			entity.powerSource = fromPos
+		}
+		
+		var powered = false
+		
+		// set flags to 0, so we can update later after we update our neighbors' power sources
+		if (entity.powerSource != null) { // if power source doesn't exist
+			powered = world.getBlockState(entity.powerSource).get(POWERED) // then update to our power state
+		}
+		
+		// find neighbors
+		val directions = listOf(NORTH, EAST, SOUTH, WEST)
+		for (k in -1..1) {
+			for (dir in directions) {
+				// propagate power to our neighbor
+				val neighborPos = pos.offset(dir).offset(Axis.Y, k)
+				if (neighborPos == fromPos) continue // don't update this neighbor if it's our caller
+				val neighborState = world.getBlockState(neighborPos)
+				if (!neighborState.isOf(this)) continue
+				if (neighborState.get(POWERED) == powered) continue // don't update this neighbor if it's already updated
+				val neighborEntity = world.getBlockEntity(neighborPos) as WireBlockEntity
+				
+				if (neighborEntity.powerSource != entity.powerSource) {
+					neighborEntity.powerSource = entity.powerSource // update our neighbor's power source to ours
+				}
+				
+				if (k != 0) {
+					powerUpdate(neighborState, world, neighborPos, pos) // pass this function to our neighbor if they're a vertical neighbor
+				}
+			}
+		}
+		
+		world.setBlockState(pos, state.with(POWERED, powered)) // update our block state, so we can update our horizontal neighbors
 	}
 	
 	override fun getWeakRedstonePower(
