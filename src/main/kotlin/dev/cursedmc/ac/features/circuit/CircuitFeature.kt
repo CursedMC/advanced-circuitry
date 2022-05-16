@@ -2,13 +2,13 @@ package dev.cursedmc.ac.features.circuit
 
 import dev.cursedmc.ac.features.Feature
 import dev.cursedmc.ac.features.circuit.block.Blocks
-import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityType
+import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityTypes
 import dev.cursedmc.libreg.registry.ident
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 
-object CircuitFeature : Feature<Items, Blocks, BlockEntityType> {
+object CircuitFeature : Feature<Items, Blocks, BlockEntityTypes> {
 	private val GROUP = FabricItemGroupBuilder
 		.create(ident("circuit_group"))
 		.icon { return@icon ItemStack(blocks().IC.second) }
@@ -30,7 +30,7 @@ object CircuitFeature : Feature<Items, Blocks, BlockEntityType> {
 		return Blocks
 	}
 	
-	override fun blockEntityType(): BlockEntityType {
-		return BlockEntityType
+	override fun blockEntityType(): BlockEntityTypes {
+		return BlockEntityTypes
 	}
 }

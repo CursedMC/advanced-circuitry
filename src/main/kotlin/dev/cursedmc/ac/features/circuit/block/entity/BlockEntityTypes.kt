@@ -4,7 +4,7 @@ import dev.cursedmc.ac.features.Initializable
 import dev.cursedmc.ac.features.circuit.block.Blocks
 import dev.cursedmc.libreg.registry.block.entity.blockEntityType
 
-object BlockEntityType : Initializable {
+object BlockEntityTypes : Initializable {
 	val WIRE_BLOCK = blockEntityType(
 		"wire_block",
 		::WireBlockEntity,

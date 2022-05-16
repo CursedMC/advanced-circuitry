@@ -1,6 +1,7 @@
 package dev.cursedmc.ac.features.circuit.block
 
-import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityType
+import dev.cursedmc.ac.exception.InvalidBlockEntityException
+import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityTypes
 import dev.cursedmc.ac.features.circuit.block.entity.WireBlockEntity
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.Block
@@ -70,22 +71,33 @@ class WireBlock : Block(
 		pos: BlockPos,
 		fromPos: BlockPos,
 	) {
-		val entity = world.getBlockEntity(pos, BlockEntityType.WIRE_BLOCK).get()
+		val entity = world.getBlockEntity(pos, BlockEntityTypes.WIRE_BLOCK).get()
 		// re-check powerSource
 		if (entity.powerSource != null && !world.getBlockState(entity.powerSource).contains(POWERED)) { // if we don't have a powerSource, reset it
 			entity.powerSource = null
 		}
 		
+		entity.iteration = 0
+		
 		val stateFrom = world.getBlockState(fromPos)
-		if (!stateFrom.isOf(this) && stateFrom.contains(POWERED)) { // check if this is a power source
-			// set the powerSource
-			entity.powerSource = fromPos
+		if (!stateFrom.isOf(this)) {
+			if (stateFrom.contains(POWERED)) { // check if this is a power source
+				// set the powerSource
+				entity.powerSource = fromPos
+			} else {
+				entity.powerSource = null
+			}
+		} else { // if this is a wire
+			val fromEntity = world.getBlockEntity(fromPos, BlockEntityTypes.WIRE_BLOCK).orElseThrow {
+				return@orElseThrow InvalidBlockEntityException(pos, world, BlockEntityTypes.WIRE_BLOCK)
+			}
+			entity.powerSource = fromEntity.powerSource // we need to set our powerSource to its powerSource to correctly propagate power
+			entity.iteration = fromEntity.iteration + 1 // then, we update our iteration ordinance
 		}
 		
 		var powered = false
 		
-		// set flags to 0, so we can update later after we update our neighbors' power sources
-		if (entity.powerSource != null) { // if power source doesn't exist
+		if (entity.powerSource != null) { // if power source exists
 			powered = world.getBlockState(entity.powerSource).get(POWERED) // then update to our power state
 		}
 		
@@ -95,11 +107,11 @@ class WireBlock : Block(
 			for (dir in directions) {
 				// propagate power to our neighbor
 				val neighborPos = pos.offset(dir).offset(Axis.Y, k)
-				if (neighborPos == fromPos) continue // don't update this neighbor if it's our caller
 				val neighborState = world.getBlockState(neighborPos)
 				if (!neighborState.isOf(this)) continue
-				if (neighborState.get(POWERED) == powered) continue // don't update this neighbor if it's already updated
 				val neighborEntity = world.getBlockEntity(neighborPos) as WireBlockEntity
+				
+				if (neighborEntity.iteration < entity.iteration) continue // don't update this neighbor if it's older
 				
 				if (neighborEntity.powerSource != entity.powerSource) {
 					neighborEntity.powerSource = entity.powerSource // update our neighbor's power source to ours
@@ -209,7 +221,7 @@ class WireBlock : Block(
 		// update neighbors above
 		val directions = listOf(NORTH, EAST, SOUTH, WEST)
 		val upPos = pos.offset(UP)
-		for (dir in directions) {// go through every neighbor of the block above us
+		for (dir in directions) { // go through every neighbor of the block above us
 			val neighborPos = upPos?.offset(dir)
 			val neighborState = world.getBlockState(neighborPos) // the block state we're fucking with
 			if (neighborState?.block !is WireBlock) continue

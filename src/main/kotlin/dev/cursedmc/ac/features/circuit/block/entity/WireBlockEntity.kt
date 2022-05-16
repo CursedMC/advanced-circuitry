@@ -10,11 +10,13 @@ import net.minecraft.network.listener.ClientPlayPacketListener
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 
-class WireBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(BlockEntityType.WIRE_BLOCK, pos, state) {
+class WireBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(BlockEntityTypes.WIRE_BLOCK, pos, state) {
 	var powerSource: BlockPos? = pos
+	var iteration: Int = 0
 	
 	override fun writeNbt(nbt: NbtCompound) {
 		nbt.putIntArray("powerSource", powerSource?.toIntArray() ?: pos.toIntArray())
+		nbt.putInt("iteration", iteration)
 		
 		super.writeNbt(nbt)
 	}
@@ -23,6 +25,7 @@ class WireBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(BlockEntit
 		super.readNbt(nbt)
 		
 		powerSource = BlockPosUtil.fromIntArray(nbt.getIntArray("powerSource"))
+		iteration = nbt.getInt("iteration")
 	}
 	
 	override fun toUpdatePacket(): Packet<ClientPlayPacketListener> {
