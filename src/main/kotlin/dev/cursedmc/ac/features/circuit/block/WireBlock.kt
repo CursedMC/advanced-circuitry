@@ -1,11 +1,9 @@
 package dev.cursedmc.ac.features.circuit.block
 
-import com.kneelawk.graphlib.GraphLib
 import com.kneelawk.graphlib.graph.BlockNode
 import dev.cursedmc.ac.features.circuit.block.entity.WireBlockEntity
 import dev.cursedmc.ac.features.circuit.block.node.WireBlockNode
 import dev.cursedmc.ac.node.container.BlockNodeProvider
-import dev.cursedmc.ac.util.info
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.Block
 import net.minecraft.block.BlockEntityProvider
@@ -65,18 +63,7 @@ class WireBlock : Block(
 			dropStacks(state, world, pos)
 			world.removeBlock(pos, false)
 		} else {
-			val controller = GraphLib.getController(world as ServerWorld)
-			controller
-				.getGraphsInPos(pos)
-				.forEach { it ->
-					info(it.toString())
-					val network = controller.getGraph(it)!!
-					network.nodes
-						.forEach {
-							info(it.data().pos().toString())
-							it.data().node().onChanged(world, it.data().pos())
-						}
-				}
+			createBlockNodes().forEach { it.onChanged(world as ServerWorld, pos) }
 		}
 	}
 	
@@ -88,13 +75,17 @@ class WireBlock : Block(
 		itemStack: ItemStack
 	) {
 		if (world.isClient) return // why does mojang get away with this
+		
+		createBlockNodes().forEach { it.onChanged(world as ServerWorld, pos) }
 	}
 	
 	override fun onBroken(world: WorldAccess, pos: BlockPos, state: BlockState) {
 		disconnectFromNeighbors(world, pos)
 		
 		if (world.isClient) return // i'm fucking tired
+		
 		// shut up and keep typing. nobody cares
+		createBlockNodes().forEach { it.onChanged(world as ServerWorld, pos) }
 	}
 	
 	//	override fun onPlaced(

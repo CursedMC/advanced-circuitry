@@ -9,6 +9,7 @@ import com.kneelawk.graphlib.wire.FullWireBlockNode
 import com.kneelawk.graphlib.wire.FullWireConnectionFilter
 import com.kneelawk.graphlib.wire.WireConnectionDiscoverers
 import dev.cursedmc.ac.features.circuit.util.NetNode
+import dev.cursedmc.ac.util.info
 import net.minecraft.nbt.NbtElement
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
@@ -37,7 +38,12 @@ abstract class PowerCarrierNode(private val filter: FullWireConnectionFilter) : 
 	}
 	
 	override fun onChanged(world: ServerWorld, pos: BlockPos) {
-		updateState(world, GraphLib.getController(world).createGraph())
+		val controller = GraphLib.getController(world)
+		controller.getGraphsInPos(pos)
+			.forEach {
+				info("test")
+				updateState(world, controller.getGraph(it)!!)
+			}
 	}
 	
 	abstract fun updateState(world: ServerWorld, network: BlockGraph)

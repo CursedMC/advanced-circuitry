@@ -23,7 +23,9 @@ class WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 				if ((node.data().node() as PowerCarrierNode).getInput(world, node2)) {
 					return@reduce node
 				} else return@reduce node2
-			}.get().run {
+			}.orElseGet {
+				return@orElseGet network.nodes.findAny().get()
+			}.run {
 				return@run (this.data().node() as PowerCarrierNode).getInput(world, this)
 			}
 		network.nodes
