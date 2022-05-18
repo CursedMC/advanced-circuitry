@@ -3,7 +3,6 @@
   "package": "dev.cursedmc.ac.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "block.node.discoverer.ServerWorldMixin",
     "power.AbstractBlockMixin",
     "power.AbstractBlockStateMixin"
   ],

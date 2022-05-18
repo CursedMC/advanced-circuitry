@@ -1,26 +1,24 @@
-package dev.cursedmc.ac.features.circuit.block.node.discoverer
+package dev.cursedmc.ac.node.discoverer
 
 import com.kneelawk.graphlib.GraphLib
 import com.kneelawk.graphlib.graph.BlockNode
 import com.kneelawk.graphlib.graph.BlockNodeDiscoverer
 import dev.cursedmc.ac.features.Initializable
-import dev.cursedmc.ac.goose.block.node.discoverer.ServerWorldWithNodes
+import dev.cursedmc.ac.node.container.BlockNodeProvider
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
 
 object ACBlockNodeDiscoverer : BlockNodeDiscoverer, Initializable {
 	override fun getNodesInBlock(world: ServerWorld, pos: BlockPos): Collection<BlockNode> {
-		val l = mutableListOf<BlockNode>()
-		val node = getNode(world, pos)
-		if (node != null) {
-			l.add(node)
+		val list = try {
+			val block = world.getBlockState(pos).block
+			val container = block as BlockNodeProvider
+			container.createBlockNodes()
+		} catch (e: java.lang.ClassCastException) {
+			dev.cursedmc.ac.util.error(e.message ?: "An unexpected error occurred.")
+			null
 		}
-		return l
-	}
-	
-	private fun getNode(world: ServerWorld, pos: BlockPos): BlockNode? {
-		val worldGoose = world as ServerWorldWithNodes
-		return worldGoose.`adv_circ$getBlockNode`(pos)
+		return list ?: emptyList()
 	}
 	
 	/* no-op */

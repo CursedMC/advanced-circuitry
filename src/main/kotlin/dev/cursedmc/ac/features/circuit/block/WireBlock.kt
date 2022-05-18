@@ -1,11 +1,11 @@
 package dev.cursedmc.ac.features.circuit.block
 
 import com.kneelawk.graphlib.GraphLib
-import dev.cursedmc.ac.exception.InvalidBlockEntityException
-import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityTypes
+import com.kneelawk.graphlib.graph.BlockNode
 import dev.cursedmc.ac.features.circuit.block.entity.WireBlockEntity
 import dev.cursedmc.ac.features.circuit.block.node.WireBlockNode
-import dev.cursedmc.ac.goose.block.node.discoverer.ServerWorldWithNodes
+import dev.cursedmc.ac.node.container.BlockNodeProvider
+import dev.cursedmc.ac.util.info
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.Block
 import net.minecraft.block.BlockEntityProvider
@@ -35,7 +35,7 @@ class WireBlock : Block(
 		.copyOf(net.minecraft.block.Blocks.IRON_BLOCK)
 		.collidable(false)
 		.nonOpaque()
-), BlockEntityProvider {
+), BlockEntityProvider, BlockNodeProvider {
 	init {
 		this.defaultState = this.defaultState.with(WIRE_CONNECTION_NORTH, WireConnection.NONE).with(WIRE_CONNECTION_EAST, WireConnection.NONE).with(WIRE_CONNECTION_SOUTH, WireConnection.NONE).with(WIRE_CONNECTION_WEST, WireConnection.NONE).with(POWERED, false)
 		
@@ -69,10 +69,11 @@ class WireBlock : Block(
 			controller
 				.getGraphsInPos(pos)
 				.forEach { it ->
+					info(it.toString())
 					val network = controller.getGraph(it)!!
 					network.nodes
 						.forEach {
-							println(it.data().pos())
+							info(it.data().pos().toString())
 							it.data().node().onChanged(world, it.data().pos())
 						}
 				}
@@ -87,9 +88,6 @@ class WireBlock : Block(
 		itemStack: ItemStack
 	) {
 		if (world.isClient) return // why does mojang get away with this
-		
-		val worldGoose = (world as ServerWorldWithNodes)
-		worldGoose.`adv_circ$setBlockNode`(pos, WireBlockNode())
 	}
 	
 	override fun onBroken(world: WorldAccess, pos: BlockPos, state: BlockState) {
@@ -97,9 +95,6 @@ class WireBlock : Block(
 		
 		if (world.isClient) return // i'm fucking tired
 		// shut up and keep typing. nobody cares
-		
-		val worldGoose = (world as ServerWorldWithNodes)
-		worldGoose.`adv_circ$setBlockNode`(pos, null)
 	}
 	
 	//	override fun onPlaced(
@@ -124,64 +119,64 @@ class WireBlock : Block(
 //		powerUpdate(state, world, pos, powerSource)
 //	}
 	
-	private fun powerUpdate(
-		state: BlockState,
-		world: World,
-		pos: BlockPos,
-		fromPos: BlockPos,
-	) {
-		val entity = world.getBlockEntity(pos, BlockEntityTypes.WIRE_BLOCK).get()
-		// re-check powerSource
-		if (entity.powerSource != null && !world.getBlockState(entity.powerSource).contains(POWERED)) { // if we don't have a powerSource, reset it
-			entity.powerSource = null
-		}
-		
-		entity.iteration = 0
-		
-		val stateFrom = world.getBlockState(fromPos)
-		if (!stateFrom.isOf(this) && fromPos != pos) {
-			if (stateFrom.contains(POWERED)) { // check if this is a power source
-				// set the powerSource
-				entity.powerSource = fromPos
-			} else {
-				entity.powerSource = null
-			}
-		} else if (fromPos != pos) { // if this is a wire
-			val fromEntity = world.getBlockEntity(fromPos, BlockEntityTypes.WIRE_BLOCK).orElseThrow {
-				return@orElseThrow InvalidBlockEntityException(pos, world, BlockEntityTypes.WIRE_BLOCK)
-			}
-			entity.powerSource = fromEntity.powerSource // we need to set our powerSource to its powerSource to correctly propagate power
-			entity.iteration = fromEntity.iteration + 1 // update our iteration ordinance accordingly
-		}
-		
-		var powered = false
-		
-		if (entity.powerSource != null) { // if power source exists
-			powered = world.getBlockState(entity.powerSource).get(POWERED) // then update to our power state
-		}
-		
-		world.setBlockState(pos, state.with(POWERED, powered), 0) // update our block state
-		
-		// find neighbors
-		val directions = listOf(NORTH, EAST, SOUTH, WEST)
-		for (k in -1..1) {
-			for (dir in directions) {
-				// propagate power to our neighbor
-				val neighborPos = pos.offset(dir).offset(Axis.Y, k)
-				val neighborState = world.getBlockState(neighborPos)
-				if (!neighborState.isOf(this)) continue
-				val neighborEntity = world.getBlockEntity(neighborPos) as WireBlockEntity
-				
-				if (neighborEntity.iteration < entity.iteration) continue // don't update this neighbor if it's older
-				
-				if (neighborEntity.powerSource != entity.powerSource) {
-					neighborEntity.powerSource = entity.powerSource // update our neighbor's power source to ours
-				}
-				
-				powerUpdate(neighborState, world, neighborPos, pos) // pass this function to our neighbor
-			}
-		}
-	}
+//	private fun powerUpdate(
+//		state: BlockState,
+//		world: World,
+//		pos: BlockPos,
+//		fromPos: BlockPos,
+//	) {
+//		val entity = world.getBlockEntity(pos, BlockEntityTypes.WIRE_BLOCK).get()
+//		// re-check powerSource
+//		if (entity.powerSource != null && !world.getBlockState(entity.powerSource).contains(POWERED)) { // if we don't have a powerSource, reset it
+//			entity.powerSource = null
+//		}
+//
+//		entity.iteration = 0
+//
+//		val stateFrom = world.getBlockState(fromPos)
+//		if (!stateFrom.isOf(this) && fromPos != pos) {
+//			if (stateFrom.contains(POWERED)) { // check if this is a power source
+//				// set the powerSource
+//				entity.powerSource = fromPos
+//			} else {
+//				entity.powerSource = null
+//			}
+//		} else if (fromPos != pos) { // if this is a wire
+//			val fromEntity = world.getBlockEntity(fromPos, BlockEntityTypes.WIRE_BLOCK).orElseThrow {
+//				return@orElseThrow InvalidBlockEntityException(pos, world, BlockEntityTypes.WIRE_BLOCK)
+//			}
+//			entity.powerSource = fromEntity.powerSource // we need to set our powerSource to its powerSource to correctly propagate power
+//			entity.iteration = fromEntity.iteration + 1 // update our iteration ordinance accordingly
+//		}
+//
+//		var powered = false
+//
+//		if (entity.powerSource != null) { // if power source exists
+//			powered = world.getBlockState(entity.powerSource).get(POWERED) // then update to our power state
+//		}
+//
+//		world.setBlockState(pos, state.with(POWERED, powered), 0) // update our block state
+//
+//		// find neighbors
+//		val directions = listOf(NORTH, EAST, SOUTH, WEST)
+//		for (k in -1..1) {
+//			for (dir in directions) {
+//				// propagate power to our neighbor
+//				val neighborPos = pos.offset(dir).offset(Axis.Y, k)
+//				val neighborState = world.getBlockState(neighborPos)
+//				if (!neighborState.isOf(this)) continue
+//				val neighborEntity = world.getBlockEntity(neighborPos) as WireBlockEntity
+//
+//				if (neighborEntity.iteration < entity.iteration) continue // don't update this neighbor if it's older
+//
+//				if (neighborEntity.powerSource != entity.powerSource) {
+//					neighborEntity.powerSource = entity.powerSource // update our neighbor's power source to ours
+//				}
+//
+//				powerUpdate(neighborState, world, neighborPos, pos) // pass this function to our neighbor
+//			}
+//		}
+//	}
 	
 	override fun getWeakRedstonePower(
 		state: BlockState,
@@ -324,6 +319,10 @@ class WireBlock : Block(
 	
 	override fun createBlockEntity(pos: BlockPos, state: BlockState): BlockEntity {
 		return WireBlockEntity(pos, state)
+	}
+	
+	override fun createBlockNodes(): Collection<BlockNode> {
+		return listOf(WireBlockNode())
 	}
 	
 	companion object {

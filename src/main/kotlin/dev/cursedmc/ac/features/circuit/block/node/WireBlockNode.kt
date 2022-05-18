@@ -19,11 +19,16 @@ class WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 		val power = network.nodes
 			.limit(512)
 			.reduce { node, node2 ->
+				// get all power sources on the network and say we're powered if one of them is.
 				if ((node.data().node() as PowerCarrierNode).getInput(world, node2)) {
 					return@reduce node
 				} else return@reduce node2
 			}.get().run {
 				return@run (this.data().node() as PowerCarrierNode).getInput(world, this)
+			}
+		network.nodes
+			.forEach {
+				setPower(world, it, power)
 			}
 	}
 	
@@ -46,9 +51,11 @@ class WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 			for (dir in Direction.Type.HORIZONTAL.stream()) {
 				val neighborPos = self.data().pos().offset(dir).offset(Axis.Y, k)
 				val neighborState = world.getBlockState(neighborPos)
-				if (!neighborState.contains(POWERED)) continue
-				if (neighborState.get(POWERED)) {
-					powered = neighborState.get(POWERED)
+				if (!neighborState.contains(POWERED) || neighborState.isOf(Blocks.WIRE_BLOCK.first)) continue
+				
+				val poweredProp = neighborState.get(POWERED)
+				if (poweredProp) {
+					powered = poweredProp
 					break@k
 				}
 			}

@@ -46,5 +46,8 @@ abstract class PowerCarrierNode(private val filter: FullWireConnectionFilter) : 
 	
 	abstract fun setPower(world: World, self: NetNode, power: Boolean)
 	
+	/**
+	 * Gets the nearest power source.
+	 */
 	abstract fun getInput(world: World, self: NetNode): Boolean
 }
