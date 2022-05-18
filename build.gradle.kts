@@ -68,6 +68,11 @@ repositories {
 	maven {
 		url = uri("https://bai.jfrog.io/artifactory/maven")
 	}
+	
+	maven {
+		name = "Kneelawk Maven"
+		url = uri("https://kneelawk.com/maven/")
+	}
 }
 
 loom {
@@ -87,6 +92,7 @@ dependencies {
 //	modImplementation("net.devtech", "grossfabrichacks", "6.1")
 //	modImplementation("net.devtech", "arrp", "0.+")
 	modImplementation("maven.modrinth", "libreg", "0.2.6+1.18.2")
+	modImplementation("com.kneelawk", "graphlib", "0.1.3+1.18.2")
 	
 	if (!file("ignoreruntimes.txt").exists()) {
 		println("Setting up runtimes...")

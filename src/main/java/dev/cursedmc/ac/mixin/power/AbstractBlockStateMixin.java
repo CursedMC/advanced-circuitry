@@ -1,7 +1,7 @@
 package dev.cursedmc.ac.mixin.power;
 
-import dev.cursedmc.ac.power.PowerableBlockState;
-import dev.cursedmc.ac.power.PowerableBlock;
+import dev.cursedmc.ac.goose.power.PowerableBlockState;
+import dev.cursedmc.ac.goose.power.PowerableBlock;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -18,7 +18,7 @@ public abstract class AbstractBlockStateMixin implements PowerableBlockState {
 	@Shadow protected abstract BlockState asBlockState();
 	
 	@Override
-	public boolean isPowered(World world, BlockPos pos, Direction direction) {
-		return ((PowerableBlock) this.getBlock()).isPowered(this.asBlockState(), world, pos, direction);
+	public boolean adv_circ$isPowered(World world, BlockPos pos, Direction direction) {
+		return ((PowerableBlock) this.getBlock()).adv_circ$isPowered(this.asBlockState(), world, pos, direction);
 	}
 }

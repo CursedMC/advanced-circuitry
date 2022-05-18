@@ -1,8 +1,11 @@
 package dev.cursedmc.ac.features.circuit.block
 
+import com.kneelawk.graphlib.GraphLib
 import dev.cursedmc.ac.exception.InvalidBlockEntityException
 import dev.cursedmc.ac.features.circuit.block.entity.BlockEntityTypes
 import dev.cursedmc.ac.features.circuit.block.entity.WireBlockEntity
+import dev.cursedmc.ac.features.circuit.block.node.WireBlockNode
+import dev.cursedmc.ac.goose.block.node.discoverer.ServerWorldWithNodes
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.Block
 import net.minecraft.block.BlockEntityProvider
@@ -10,6 +13,9 @@ import net.minecraft.block.BlockState
 import net.minecraft.block.ShapeContext
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.block.enums.WireConnection
+import net.minecraft.entity.LivingEntity
+import net.minecraft.item.ItemStack
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.BooleanProperty
 import net.minecraft.state.property.EnumProperty
@@ -30,8 +36,6 @@ class WireBlock : Block(
 		.collidable(false)
 		.nonOpaque()
 ), BlockEntityProvider {
-	private var givesPower = false
-	
 	init {
 		this.defaultState = this.defaultState.with(WIRE_CONNECTION_NORTH, WireConnection.NONE).with(WIRE_CONNECTION_EAST, WireConnection.NONE).with(WIRE_CONNECTION_SOUTH, WireConnection.NONE).with(WIRE_CONNECTION_WEST, WireConnection.NONE).with(POWERED, false)
 		
@@ -61,9 +65,64 @@ class WireBlock : Block(
 			dropStacks(state, world, pos)
 			world.removeBlock(pos, false)
 		} else {
-			powerUpdate(state, world, pos, fromPos)
+			val controller = GraphLib.getController(world as ServerWorld)
+			controller
+				.getGraphsInPos(pos)
+				.forEach { it ->
+					val network = controller.getGraph(it)!!
+					network.nodes
+						.forEach {
+							println(it.data().pos())
+							it.data().node().onChanged(world, it.data().pos())
+						}
+				}
 		}
 	}
+	
+	override fun onPlaced(
+		world: World,
+		pos: BlockPos,
+		state: BlockState,
+		placer: LivingEntity?,
+		itemStack: ItemStack
+	) {
+		if (world.isClient) return // why does mojang get away with this
+		
+		val worldGoose = (world as ServerWorldWithNodes)
+		worldGoose.`adv_circ$setBlockNode`(pos, WireBlockNode())
+	}
+	
+	override fun onBroken(world: WorldAccess, pos: BlockPos, state: BlockState) {
+		disconnectFromNeighbors(world, pos)
+		
+		if (world.isClient) return // i'm fucking tired
+		// shut up and keep typing. nobody cares
+		
+		val worldGoose = (world as ServerWorldWithNodes)
+		worldGoose.`adv_circ$setBlockNode`(pos, null)
+	}
+	
+	//	override fun onPlaced(
+//		world: World,
+//		pos: BlockPos,
+//		state: BlockState,
+//		placer: LivingEntity?,
+//		itemStack: ItemStack
+//	) {
+//		var powerSource = pos
+//		val directions = listOf(NORTH, EAST, SOUTH, WEST)
+//		k@for (k in -1..1) {
+//			for (dir in directions) {
+//				val neighborPos = pos.offset(dir).offset(Axis.Y, k)
+//				val neighborState = world.getBlockState(neighborPos)
+//				if (!neighborState.contains(POWERED) || neighborState.isOf(this)) continue
+//
+//				powerSource = neighborPos
+//				break@k
+//			}
+//		}
+//		powerUpdate(state, world, pos, powerSource)
+//	}
 	
 	private fun powerUpdate(
 		state: BlockState,
@@ -80,19 +139,19 @@ class WireBlock : Block(
 		entity.iteration = 0
 		
 		val stateFrom = world.getBlockState(fromPos)
-		if (!stateFrom.isOf(this)) {
+		if (!stateFrom.isOf(this) && fromPos != pos) {
 			if (stateFrom.contains(POWERED)) { // check if this is a power source
 				// set the powerSource
 				entity.powerSource = fromPos
 			} else {
 				entity.powerSource = null
 			}
-		} else { // if this is a wire
+		} else if (fromPos != pos) { // if this is a wire
 			val fromEntity = world.getBlockEntity(fromPos, BlockEntityTypes.WIRE_BLOCK).orElseThrow {
 				return@orElseThrow InvalidBlockEntityException(pos, world, BlockEntityTypes.WIRE_BLOCK)
 			}
 			entity.powerSource = fromEntity.powerSource // we need to set our powerSource to its powerSource to correctly propagate power
-			entity.iteration = fromEntity.iteration + 1 // then, we update our iteration ordinance
+			entity.iteration = fromEntity.iteration + 1 // update our iteration ordinance accordingly
 		}
 		
 		var powered = false
@@ -100,6 +159,8 @@ class WireBlock : Block(
 		if (entity.powerSource != null) { // if power source exists
 			powered = world.getBlockState(entity.powerSource).get(POWERED) // then update to our power state
 		}
+		
+		world.setBlockState(pos, state.with(POWERED, powered), 0) // update our block state
 		
 		// find neighbors
 		val directions = listOf(NORTH, EAST, SOUTH, WEST)
@@ -117,13 +178,9 @@ class WireBlock : Block(
 					neighborEntity.powerSource = entity.powerSource // update our neighbor's power source to ours
 				}
 				
-				if (k != 0) {
-					powerUpdate(neighborState, world, neighborPos, pos) // pass this function to our neighbor if they're a vertical neighbor
-				}
+				powerUpdate(neighborState, world, neighborPos, pos) // pass this function to our neighbor
 			}
 		}
-		
-		world.setBlockState(pos, state.with(POWERED, powered)) // update our block state, so we can update our horizontal neighbors
 	}
 	
 	override fun getWeakRedstonePower(
@@ -236,10 +293,6 @@ class WireBlock : Block(
 			if (neighborState?.block !is WireBlock) continue
 			replace(neighborState, neighborState.with(EnumProperty.of(dir.opposite.name.lowercase(), WireConnection::class.java), WireConnection.UP), world, neighborPos, flags, maxUpdateDepth)
 		}
-	}
-	
-	override fun onBroken(world: WorldAccess, pos: BlockPos, state: BlockState) {
-		disconnectFromNeighbors(world, pos)
 	}
 	
 	private fun disconnectFromNeighbors(world: WorldAccess, pos: BlockPos) {

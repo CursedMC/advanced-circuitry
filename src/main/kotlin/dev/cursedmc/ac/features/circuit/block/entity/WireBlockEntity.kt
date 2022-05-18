@@ -12,11 +12,11 @@ import net.minecraft.util.math.BlockPos
 
 class WireBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(BlockEntityTypes.WIRE_BLOCK, pos, state) {
 	var powerSource: BlockPos? = pos
-	var iteration: Int = 0
+	var iteration: Long = 0
 	
 	override fun writeNbt(nbt: NbtCompound) {
 		nbt.putIntArray("powerSource", powerSource?.toIntArray() ?: pos.toIntArray())
-		nbt.putInt("iteration", iteration)
+		nbt.putLong("iteration", iteration)
 		
 		super.writeNbt(nbt)
 	}
@@ -25,7 +25,7 @@ class WireBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(BlockEntit
 		super.readNbt(nbt)
 		
 		powerSource = BlockPosUtil.fromIntArray(nbt.getIntArray("powerSource"))
-		iteration = nbt.getInt("iteration")
+		iteration = nbt.getLong("iteration")
 	}
 	
 	override fun toUpdatePacket(): Packet<ClientPlayPacketListener> {
