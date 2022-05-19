@@ -36,7 +36,7 @@ object WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 	}
 	
 	override fun setPower(world: World, self: NetNode, power: Boolean) {
-		world.setBlockState(self.pos, world.getBlockState(self.pos).with(POWERED, power), Block.NOTIFY_LISTENERS)
+		world.setBlockState(self.pos, world.getBlockState(self.pos).with(POWERED, power), Block.NOTIFY_ALL)
 	}
 	
 	override fun getInput(world: World, self: NetNode): Boolean {

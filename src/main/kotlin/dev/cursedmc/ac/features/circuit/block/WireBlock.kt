@@ -59,6 +59,9 @@ class WireBlock : Block(
 	) {
 		if (world.isClient || world !is ServerWorld) return // just in case (like mojang does it!)
 		
+		val fromState = world.getBlockState(fromPos)
+		if (fromState.isOf(this)) return // don't accept block updates from other wires
+		
 		if (!state.canPlaceAt(world, pos)) { // make sure we're on a full block face
 			dropStacks(state, world, pos)
 			world.removeBlock(pos, false)
