@@ -4,6 +4,7 @@ import com.kneelawk.graphlib.graph.BlockNodeWrapper
 import com.kneelawk.graphlib.graph.NodeView
 import com.kneelawk.graphlib.graph.struct.Node
 import com.kneelawk.graphlib.wire.FullWireBlockNode
+import com.kneelawk.graphlib.wire.WireConnectionFilter
 import dev.cursedmc.ac.features.circuit.util.NetNode
 import dev.cursedmc.ac.features.circuit.util.node
 import dev.cursedmc.ac.features.circuit.util.pos
@@ -14,7 +15,7 @@ import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Direction.Axis
 import net.minecraft.world.World
 
-abstract class PowerCarrierNode : FullWireBlockNode {
+abstract class PowerCarrierNode(private val filter: WireConnectionFilter) : FullWireBlockNode {
 	override fun toTag(): NbtElement? {
 		return null
 	}
@@ -46,7 +47,7 @@ abstract class PowerCarrierNode : FullWireBlockNode {
 		pos: BlockPos,
 		other: Node<BlockNodeWrapper<*>>
 	): Boolean {
-		return other.pos.isWithinDistance(pos, 1.4142135623730951)
+		return other.pos.isWithinDistance(pos, 1.4142135623730951) && filter.accepts(this, other.node)
 	}
 	
 	abstract fun getPower(world: World, self: NetNode): Boolean

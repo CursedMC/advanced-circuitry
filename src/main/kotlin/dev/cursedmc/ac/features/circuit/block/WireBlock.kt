@@ -3,15 +3,12 @@ package dev.cursedmc.ac.features.circuit.block
 import com.kneelawk.graphlib.GraphLib
 import com.kneelawk.graphlib.graph.BlockNode
 import dev.cursedmc.ac.features.circuit.PowerManager
-import dev.cursedmc.ac.features.circuit.block.entity.WireBlockEntity
 import dev.cursedmc.ac.features.circuit.block.node.WireBlockNode
 import dev.cursedmc.ac.node.container.BlockNodeProvider
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.Block
-import net.minecraft.block.BlockEntityProvider
 import net.minecraft.block.BlockState
 import net.minecraft.block.ShapeContext
-import net.minecraft.block.entity.BlockEntity
 import net.minecraft.block.enums.WireConnection
 import net.minecraft.entity.LivingEntity
 import net.minecraft.item.ItemStack
@@ -36,7 +33,7 @@ class WireBlock : Block(
 		.collidable(false)
 		.luminance { if (it[POWERED]) 7 else 0 }
 		.nonOpaque()
-), BlockEntityProvider, BlockNodeProvider {
+), BlockNodeProvider {
 	init {
 		this.defaultState = this.defaultState.with(WIRE_CONNECTION_NORTH, WireConnection.NONE).with(WIRE_CONNECTION_EAST, WireConnection.NONE).with(WIRE_CONNECTION_SOUTH, WireConnection.NONE).with(WIRE_CONNECTION_WEST, WireConnection.NONE).with(POWERED, false)
 		
@@ -231,10 +228,6 @@ class WireBlock : Block(
 	
 	override fun appendProperties(builder: StateManager.Builder<Block, BlockState>) {
 		builder.add(WIRE_CONNECTION_NORTH, WIRE_CONNECTION_EAST, WIRE_CONNECTION_SOUTH, WIRE_CONNECTION_WEST, POWERED)
-	}
-	
-	override fun createBlockEntity(pos: BlockPos, state: BlockState): BlockEntity {
-		return WireBlockEntity(pos, state)
 	}
 	
 	override fun createBlockNodes(): Collection<BlockNode> {

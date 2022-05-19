@@ -5,6 +5,7 @@ import com.kneelawk.graphlib.graph.BlockNodeDecoder
 import dev.cursedmc.ac.features.circuit.PowerManager
 import dev.cursedmc.ac.features.circuit.block.Blocks
 import dev.cursedmc.ac.features.circuit.block.WireBlock.Companion.POWERED
+import dev.cursedmc.ac.features.circuit.block.node.filter.PowerCarrierFilter
 import dev.cursedmc.ac.features.circuit.util.NetNode
 import dev.cursedmc.ac.features.circuit.util.pos
 import dev.cursedmc.ac.util.warn
@@ -18,7 +19,7 @@ import net.minecraft.util.math.Direction.Axis
 import net.minecraft.world.World
 
 // immutable with no data means there only needs to be one instance, hence an object
-object WireBlockNode : PowerCarrierNode() {
+object WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 	override fun getTypeId(): Identifier = BlockNodes.WIRE_BLOCK_NODE
 	
 	override fun onChanged(world: ServerWorld, pos: BlockPos) {

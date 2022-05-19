@@ -2,7 +2,7 @@ package dev.cursedmc.ac.features.circuit
 
 import net.minecraft.util.StringIdentifiable
 
-enum class Powered : StringIdentifiable {
+enum class GatePowerState : StringIdentifiable {
 	LEFT,
 	RIGHT,
 	BOTH,
