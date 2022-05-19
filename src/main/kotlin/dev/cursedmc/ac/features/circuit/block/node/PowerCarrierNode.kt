@@ -4,15 +4,17 @@ import com.kneelawk.graphlib.graph.BlockNodeWrapper
 import com.kneelawk.graphlib.graph.NodeView
 import com.kneelawk.graphlib.graph.struct.Node
 import com.kneelawk.graphlib.wire.FullWireBlockNode
-import com.kneelawk.graphlib.wire.FullWireConnectionFilter
-import com.kneelawk.graphlib.wire.WireConnectionDiscoverers
 import dev.cursedmc.ac.features.circuit.util.NetNode
+import dev.cursedmc.ac.features.circuit.util.node
+import dev.cursedmc.ac.features.circuit.util.pos
 import net.minecraft.nbt.NbtElement
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Direction.Axis
 import net.minecraft.world.World
 
-abstract class PowerCarrierNode(private val filter: FullWireConnectionFilter) : FullWireBlockNode {
+abstract class PowerCarrierNode : FullWireBlockNode {
 	override fun toTag(): NbtElement? {
 		return null
 	}
@@ -21,8 +23,21 @@ abstract class PowerCarrierNode(private val filter: FullWireConnectionFilter) : 
 		world: ServerWorld,
 		nodeView: NodeView,
 		pos: BlockPos
-	): MutableCollection<Node<BlockNodeWrapper<*>>> {
-		return WireConnectionDiscoverers.fullBlockFindConnections(this, world, nodeView, pos, filter)
+	): MutableCollection<NetNode> {
+		val collector = ArrayList<NetNode>()
+		
+		for (k in -1..1) {
+			for (dir in Direction.Type.HORIZONTAL.stream()) {
+				val neighborPos = pos.offset(dir).offset(Axis.Y, k)
+				nodeView.getNodesAt(neighborPos)
+					.forEach {
+						if (it.node !is PowerCarrierNode) return@forEach
+						collector.add(it)
+					}
+			}
+		}
+		
+		return collector
 	}
 	
 	override fun canConnect(
@@ -31,7 +46,7 @@ abstract class PowerCarrierNode(private val filter: FullWireConnectionFilter) : 
 		pos: BlockPos,
 		other: Node<BlockNodeWrapper<*>>
 	): Boolean {
-		return WireConnectionDiscoverers.fullBlockCanConnect(this, world, pos, filter, other)
+		return other.pos.isWithinDistance(pos, 1.4142135623730951)
 	}
 	
 	abstract fun getPower(world: World, self: NetNode): Boolean
