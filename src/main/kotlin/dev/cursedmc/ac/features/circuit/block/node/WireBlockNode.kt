@@ -1,42 +1,34 @@
 package dev.cursedmc.ac.features.circuit.block.node
 
-import com.kneelawk.graphlib.graph.BlockGraph
+import com.kneelawk.graphlib.graph.BlockNode
+import com.kneelawk.graphlib.graph.BlockNodeDecoder
+import dev.cursedmc.ac.features.circuit.PowerManager
 import dev.cursedmc.ac.features.circuit.block.Blocks
 import dev.cursedmc.ac.features.circuit.block.WireBlock.Companion.POWERED
 import dev.cursedmc.ac.features.circuit.block.node.filter.PowerCarrierFilter
 import dev.cursedmc.ac.features.circuit.util.NetNode
+import dev.cursedmc.ac.features.circuit.util.pos
 import dev.cursedmc.ac.util.warn
+import net.minecraft.block.Block
+import net.minecraft.nbt.NbtElement
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.Identifier
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Direction.Axis
 import net.minecraft.world.World
 
-class WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
-	override fun getTypeId(): Identifier = Blocks.WIRE_BLOCK.first.lootTableId
+// immutable with no data means there only needs to be one instance, hence an object
+object WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
+	override fun getTypeId(): Identifier = BlockNodes.WIRE_BLOCK_NODE
 	
-	override fun updateState(world: ServerWorld, network: BlockGraph) {
-		val power = network.nodes
-			.limit(512)
-			.reduce { node, node2 ->
-				// get all power sources on the network and say we're powered if one of them is.
-				if ((node.data().node() as PowerCarrierNode).getInput(world, node2)) {
-					return@reduce node
-				} else return@reduce node2
-			}.orElseGet {
-				return@orElseGet network.nodes.findAny().get()
-			}.run {
-				return@run (this.data().node() as PowerCarrierNode).getInput(world, this)
-			}
-		network.nodes
-			.forEach {
-				setPower(world, it, power)
-			}
+	override fun onChanged(world: ServerWorld, pos: BlockPos) {
+		PowerManager.scheduleUpdate(world, pos)
 	}
 	
 	override fun getPower(world: World, self: NetNode): Boolean {
 		return try {
-			world.getBlockState(self.data().pos()).get(POWERED)
+			world.getBlockState(self.pos).get(POWERED)
 		} catch (e: java.lang.IllegalArgumentException) {
 			warn(e.message!!)
 			false
@@ -44,14 +36,14 @@ class WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 	}
 	
 	override fun setPower(world: World, self: NetNode, power: Boolean) {
-		world.setBlockState(self.data().pos(), world.getBlockState(self.data().pos()).with(POWERED, power), 0)
+		world.setBlockState(self.pos, world.getBlockState(self.pos).with(POWERED, power), Block.NOTIFY_LISTENERS)
 	}
 	
 	override fun getInput(world: World, self: NetNode): Boolean {
 		var powered = false
 		k@for (k in -1..1) {
 			for (dir in Direction.Type.HORIZONTAL.stream()) {
-				val neighborPos = self.data().pos().offset(dir).offset(Axis.Y, k)
+				val neighborPos = self.pos.offset(dir).offset(Axis.Y, k)
 				val neighborState = world.getBlockState(neighborPos)
 				if (!neighborState.contains(POWERED) || neighborState.isOf(Blocks.WIRE_BLOCK.first)) continue
 				
@@ -64,5 +56,11 @@ class WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 		}
 		
 		return powered
+	}
+	
+	object Decoder : BlockNodeDecoder {
+		override fun createBlockNodeFromTag(tag: NbtElement?): BlockNode {
+			return WireBlockNode
+		}
 	}
 }

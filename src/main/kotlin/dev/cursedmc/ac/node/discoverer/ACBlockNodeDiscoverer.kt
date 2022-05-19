@@ -10,15 +10,7 @@ import net.minecraft.util.math.BlockPos
 
 object ACBlockNodeDiscoverer : BlockNodeDiscoverer, Initializable {
 	override fun getNodesInBlock(world: ServerWorld, pos: BlockPos): Collection<BlockNode> {
-		val list = try {
-			val block = world.getBlockState(pos).block
-			val container = block as BlockNodeProvider
-			container.createBlockNodes()
-		} catch (e: java.lang.ClassCastException) {
-			dev.cursedmc.ac.util.error(e.message ?: "An unexpected error occurred.")
-			null
-		}
-		return list ?: emptyList()
+		return (world.getBlockState(pos).block as? BlockNodeProvider)?.createBlockNodes() ?: emptyList()
 	}
 	
 	/* no-op */

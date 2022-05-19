@@ -1,6 +1,7 @@
 package dev.cursedmc.ac
 
 import dev.cursedmc.ac.features.circuit.CircuitFeature
+import dev.cursedmc.ac.features.circuit.PowerManager
 import dev.cursedmc.ac.node.discoverer.ACBlockNodeDiscoverer
 import dev.cursedmc.ac.features.pcb.PCBFeature
 import dev.cursedmc.ac.util.info
@@ -19,4 +20,7 @@ fun init() {
 	// Feature Initialization
 	PCBFeature.initialize()
 	CircuitFeature.initialize()
+	
+	// TODO find a better place for this
+	PowerManager.initialize()
 }

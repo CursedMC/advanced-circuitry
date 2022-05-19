@@ -1,6 +1,8 @@
 package dev.cursedmc.ac.features.circuit.block
 
+import com.kneelawk.graphlib.GraphLib
 import com.kneelawk.graphlib.graph.BlockNode
+import dev.cursedmc.ac.features.circuit.PowerManager
 import dev.cursedmc.ac.features.circuit.block.entity.WireBlockEntity
 import dev.cursedmc.ac.features.circuit.block.node.WireBlockNode
 import dev.cursedmc.ac.node.container.BlockNodeProvider
@@ -32,6 +34,7 @@ class WireBlock : Block(
 	FabricBlockSettings
 		.copyOf(net.minecraft.block.Blocks.IRON_BLOCK)
 		.collidable(false)
+		.luminance { if (it[POWERED]) 7 else 0 }
 		.nonOpaque()
 ), BlockEntityProvider, BlockNodeProvider {
 	init {
@@ -57,13 +60,16 @@ class WireBlock : Block(
 		fromPos: BlockPos,
 		notify: Boolean,
 	) {
-		if (world.isClient) return // just in case (like mojang does it!)
+		if (world.isClient || world !is ServerWorld) return // just in case (like mojang does it!)
 		
 		if (!state.canPlaceAt(world, pos)) { // make sure we're on a full block face
 			dropStacks(state, world, pos)
 			world.removeBlock(pos, false)
 		} else {
-			createBlockNodes().forEach { it.onChanged(world as ServerWorld, pos) }
+			GraphLib.getController(world).updateConnections(pos)
+			
+			// makes it so that a lever or redstone torch changing will update this wires powered state
+			PowerManager.scheduleUpdate(world, pos)
 		}
 	}
 	
@@ -74,18 +80,18 @@ class WireBlock : Block(
 		placer: LivingEntity?,
 		itemStack: ItemStack
 	) {
-		if (world.isClient) return // why does mojang get away with this
+		if (world.isClient || world !is ServerWorld) return // why does mojang get away with this
 		
-		createBlockNodes().forEach { it.onChanged(world as ServerWorld, pos) }
+		GraphLib.getController(world).onChanged(pos)
 	}
 	
 	override fun onBroken(world: WorldAccess, pos: BlockPos, state: BlockState) {
 		disconnectFromNeighbors(world, pos)
 		
-		if (world.isClient) return // i'm fucking tired
+		if (world.isClient || world !is ServerWorld) return // i'm fucking tired
 		
 		// shut up and keep typing. nobody cares
-		createBlockNodes().forEach { it.onChanged(world as ServerWorld, pos) }
+		GraphLib.getController(world).onChanged(pos)
 	}
 	
 	//	override fun onPlaced(
@@ -313,7 +319,7 @@ class WireBlock : Block(
 	}
 	
 	override fun createBlockNodes(): Collection<BlockNode> {
-		return listOf(WireBlockNode())
+		return listOf(WireBlockNode)
 	}
 	
 	companion object {
