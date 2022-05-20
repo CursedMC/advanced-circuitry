@@ -13,10 +13,7 @@ object ACBlockNodeDiscoverer : BlockNodeDiscoverer, Initializable {
 		return (world.getBlockState(pos).block as? BlockNodeProvider)?.createBlockNodes() ?: emptyList()
 	}
 	
-	/* no-op */
-	override fun initialize() = Unit
-	
-	init {
+	override fun initialize() {
 		GraphLib.registerDiscoverer(this)
 	}
 }

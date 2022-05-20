@@ -4,7 +4,7 @@ import com.kneelawk.graphlib.graph.BlockNode
 import com.kneelawk.graphlib.graph.BlockNodeDecoder
 import dev.cursedmc.ac.features.circuit.PowerManager
 import dev.cursedmc.ac.features.circuit.block.Blocks
-import dev.cursedmc.ac.features.circuit.block.WireBlock.Companion.POWERED
+import dev.cursedmc.ac.features.circuit.block.component.PoweredComponentBlock.Companion.POWERED
 import dev.cursedmc.ac.features.circuit.block.node.filter.PowerCarrierFilter
 import dev.cursedmc.ac.features.circuit.util.NetNode
 import dev.cursedmc.ac.features.circuit.util.pos
@@ -23,7 +23,7 @@ object WireBlockNode : PowerCarrierNode(PowerCarrierFilter) {
 	override fun getTypeId(): Identifier = BlockNodes.WIRE_BLOCK_NODE
 	
 	override fun onChanged(world: ServerWorld, pos: BlockPos) {
-		PowerManager.scheduleUpdate(world, pos)
+		PowerManager.update(world, pos)
 	}
 	
 	override fun getPower(world: World, self: NetNode): Boolean {
