@@ -17,8 +17,4 @@ class NotGateBlock : GateBlock(
 		val inputDir = world.getBlockState(pos).get(HorizontalFacingBlock.FACING).opposite
 		return listOf(NotGateNode.Output(inputDir), NotGateNode.Input(inputDir))
 	}
-	
-	override fun condition(input: Array<Boolean>): Array<Boolean> {
-		return arrayOf(!input[0])
-	}
 }

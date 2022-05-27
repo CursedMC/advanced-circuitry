@@ -3,9 +3,7 @@ package dev.cursedmc.ac.features.circuit
 import com.kneelawk.graphlib.GraphLib
 import dev.cursedmc.ac.features.Initializable
 import dev.cursedmc.ac.features.circuit.block.component.PoweredComponent
-import dev.cursedmc.ac.features.circuit.block.node.GateNode
 import dev.cursedmc.ac.features.circuit.block.node.PowerCarrierNode
-import dev.cursedmc.ac.features.circuit.block.node.WireNode
 import dev.cursedmc.ac.features.circuit.util.node
 import dev.cursedmc.ac.features.circuit.util.pos
 import net.minecraft.server.world.ServerWorld
@@ -30,15 +28,13 @@ object PowerManager : Initializable {
 				val node = it.node
 				
 				if (world.getBlockState(it.pos).block !is PoweredComponent) return@anyMatch false
-				if (it.node is GateNode.GateOutput) return@anyMatch false // don't update gate outputs
 				
-				(node is WireNode && node.getSourceOutput(world, it)) || (node is GateNode.GateOutput && node is GateNode && node.getState(world, it))
+				(node is PowerCarrierNode && node.getSourceOutput(world, it))
 			}
 		network.nodes
 			.forEach {
 				// ensure we're only updating components
 				if (world.getBlockState(it.pos).block !is PoweredComponent) return@forEach
-				if (it.node is GateNode.GateOutput) return@forEach // don't update gate outputs
 				
 				(it.node as? PowerCarrierNode)?.setState(world, it, power)
 			}

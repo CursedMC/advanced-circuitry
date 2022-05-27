@@ -3,8 +3,8 @@ package dev.cursedmc.ac.features.circuit.block.node
 import com.kneelawk.graphlib.graph.BlockNode
 import com.kneelawk.graphlib.graph.BlockNodeDecoder
 import dev.cursedmc.ac.features.circuit.PowerManager
+import dev.cursedmc.ac.features.circuit.block.component.PoweredComponent
 import dev.cursedmc.ac.features.circuit.block.component.PoweredComponentBlock.Companion.POWERED
-import dev.cursedmc.ac.features.circuit.block.component.WireBlock
 import dev.cursedmc.ac.features.circuit.block.node.filter.PowerCarrierFilter
 import dev.cursedmc.ac.features.circuit.util.NetNode
 import dev.cursedmc.ac.features.circuit.util.pos
@@ -38,7 +38,7 @@ object WireNode : PowerCarrierNode(PowerCarrierFilter) {
 			for (dir in Direction.Type.HORIZONTAL.stream()) {
 				val neighborPos = self.pos.offset(dir).offset(Axis.Y, k)
 				val neighborState = world.getBlockState(neighborPos)
-				if (!neighborState.contains(POWERED) || neighborState.block is WireBlock) continue
+				if (!neighborState.contains(POWERED) || neighborState.block is PoweredComponent) continue
 				
 				val poweredProp = neighborState.get(POWERED)
 				if (poweredProp) {
