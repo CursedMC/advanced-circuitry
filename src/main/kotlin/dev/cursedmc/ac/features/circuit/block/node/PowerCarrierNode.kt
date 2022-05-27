@@ -1,5 +1,7 @@
 package dev.cursedmc.ac.features.circuit.block.node
 
+import com.kneelawk.graphlib.graph.BlockNode
+import com.kneelawk.graphlib.graph.BlockNodeDecoder
 import com.kneelawk.graphlib.graph.BlockNodeWrapper
 import com.kneelawk.graphlib.graph.NodeView
 import com.kneelawk.graphlib.graph.struct.Node
@@ -8,6 +10,7 @@ import com.kneelawk.graphlib.wire.WireConnectionFilter
 import dev.cursedmc.ac.features.circuit.util.NetNode
 import dev.cursedmc.ac.features.circuit.util.node
 import dev.cursedmc.ac.features.circuit.util.pos
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
@@ -50,12 +53,28 @@ abstract class PowerCarrierNode(private val filter: WireConnectionFilter) : Full
 		return other.pos.isWithinDistance(pos, 1.4142135623730951) && filter.accepts(this, other.node)
 	}
 	
-	abstract fun getPower(world: World, self: NetNode): Boolean
+	/**
+	 * Sets the output power of the block.
+	 */
+	abstract fun setState(world: World, self: NetNode, power: Boolean)
 	
-	abstract fun setPower(world: World, self: NetNode, power: Boolean)
+	/**
+	 * Gets the output power of the block.
+	 */
+	abstract fun getState(world: World, self: NetNode): Boolean
 	
 	/**
 	 * Gets the nearest power source.
 	 */
-	abstract fun getInput(world: World, self: NetNode): Boolean
+	abstract fun getSourceOutput(world: World, self: NetNode): Boolean
+	
+	abstract class Decoder : BlockNodeDecoder {
+		override fun createBlockNodeFromTag(tag: NbtElement?): BlockNode? {
+			if (tag !is NbtCompound) throw NullPointerException("skill issue")
+			
+			return this.createBlockNodeFromTag(tag)
+		}
+		
+		abstract fun createBlockNodeFromTag(tag: NbtCompound): BlockNode
+	}
 }

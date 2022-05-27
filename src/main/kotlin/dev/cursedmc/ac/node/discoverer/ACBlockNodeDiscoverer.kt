@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos
 
 object ACBlockNodeDiscoverer : BlockNodeDiscoverer, Initializable {
 	override fun getNodesInBlock(world: ServerWorld, pos: BlockPos): Collection<BlockNode> {
-		return (world.getBlockState(pos).block as? BlockNodeProvider)?.createBlockNodes() ?: emptyList()
+		return (world.getBlockState(pos).block as? BlockNodeProvider)?.createBlockNodes(world, pos) ?: emptyList()
 	}
 	
 	override fun initialize() {

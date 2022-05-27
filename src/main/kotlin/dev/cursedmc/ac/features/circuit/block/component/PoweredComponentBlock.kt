@@ -39,7 +39,7 @@ abstract class PoweredComponentBlock(settings: Settings) : Block(settings), Powe
 		if (world.isClient || world !is ServerWorld) return // just in case (like mojang does it!)
 		
 		val fromState = world.getBlockState(fromPos)
-		if (fromState.isOf(this)) return // don't accept block updates from other components
+		if (fromState.block is PoweredComponent) return // don't accept block updates from other components
 		
 		if (!state.canPlaceAt(world, pos)) { // make sure we're on a full block face
 			dropStacks(state, world, pos)
@@ -115,7 +115,7 @@ abstract class PoweredComponentBlock(settings: Settings) : Block(settings), Powe
 		}
 		for (dir in Direction.values()) {
 			if (dir == direction) continue
-			if (world.getBlockState(pos.offset(dir)).isOf(this)) {
+			if (world.getBlockState(pos.offset(dir)).block is PoweredComponent) {
 				directions.add(dir)
 			}
 		}

@@ -2,6 +2,7 @@ package dev.cursedmc.ac.features.circuit.block
 
 import dev.cursedmc.ac.features.Initializable
 import dev.cursedmc.ac.features.circuit.CircuitFeature
+import dev.cursedmc.ac.features.circuit.block.component.NotGateBlock
 import dev.cursedmc.ac.features.circuit.block.component.WireBlock
 import dev.cursedmc.ac.features.circuit.block.node.BlockNodes
 import dev.cursedmc.libreg.registry.block.blockItem
@@ -18,6 +19,13 @@ object Blocks : Initializable {
 	val WIRE_BLOCK = blockItem(
 		"wire",
 		WireBlock(),
+		FabricItemSettings()
+			.group(CircuitFeature.group())
+	)
+	
+	val NOT_GATE = blockItem(
+		"gate_not",
+		NotGateBlock(),
 		FabricItemSettings()
 			.group(CircuitFeature.group())
 	)
