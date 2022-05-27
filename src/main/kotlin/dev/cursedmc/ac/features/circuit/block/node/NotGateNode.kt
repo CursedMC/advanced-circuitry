@@ -19,10 +19,6 @@ sealed class NotGateNode(side: Direction) : GateNode(InputType.STRAIGHT, side) {
 		override fun setState(world: World, self: NetNode, power: Boolean) {
 			super.setState(world, self, !power)
 		}
-		
-		override fun getState(world: World, self: NetNode): Boolean {
-			return !super.getState(world, self)
-		}
 	}
 	data class Output(private val side: Direction) : NotGateNode(side), GateOutput
 	

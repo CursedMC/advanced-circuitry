@@ -71,6 +71,8 @@ abstract class PoweredComponentBlock(settings: Settings) : Block(settings), Powe
 	) {
 		if (world.isClient || world !is ServerWorld) return // why does mojang get away with this
 		
+		GraphLib.getController(world).updateConnections(pos)
+		
 		GraphLib.getController(world).onChanged(pos)
 	}
 	
