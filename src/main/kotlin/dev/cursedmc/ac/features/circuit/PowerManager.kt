@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos
 
 object PowerManager : Initializable {
     fun update(world: ServerWorld, pos: BlockPos) {
-        GraphLib.getController(world).getGraphsInPos(pos).forEach { updateGraph(world, it) }
+        GraphLib.getController(world).getGraphsAt(pos).forEach { updateGraph(world, it) }
     }
 	
 	fun updateGraph(world: ServerWorld, id: Long) {

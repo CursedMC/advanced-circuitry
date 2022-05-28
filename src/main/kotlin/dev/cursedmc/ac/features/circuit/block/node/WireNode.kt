@@ -20,7 +20,7 @@ import net.minecraft.world.World
 object WireNode : PowerCarrierNode(PowerCarrierFilter) {
 	override fun getTypeId(): Identifier = BlockNodes.WIRE_BLOCK_NODE
 	
-	override fun onChanged(world: ServerWorld, pos: BlockPos) {
+	override fun onConnectionsChanged(world: ServerWorld, pos: BlockPos, self: NetNode) {
 		PowerManager.update(world, pos)
 	}
 	

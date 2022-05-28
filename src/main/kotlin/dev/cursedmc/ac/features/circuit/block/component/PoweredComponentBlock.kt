@@ -44,7 +44,7 @@ abstract class PoweredComponentBlock(settings: Settings) : Block(settings), Powe
 		if (!state.canPlaceAt(world, pos)) { // make sure we're on a full block face
 			dropStacks(state, world, pos)
 			world.removeBlock(pos, false)
-			GraphLib.getController(world).onChanged(pos)
+			GraphLib.getController(world).updateNodes(pos)
 		} else {
 			GraphLib.getController(world).updateConnections(pos)
 			
@@ -73,7 +73,7 @@ abstract class PoweredComponentBlock(settings: Settings) : Block(settings), Powe
 		
 		GraphLib.getController(world).updateConnections(pos)
 		
-		GraphLib.getController(world).onChanged(pos)
+		GraphLib.getController(world).updateNodes(pos)
 	}
 	
 	override fun onBroken(world: WorldAccess, pos: BlockPos, state: BlockState) {
@@ -82,7 +82,7 @@ abstract class PoweredComponentBlock(settings: Settings) : Block(settings), Powe
 		if (world.isClient || world !is ServerWorld) return // i'm fucking tired
 		
 		// shut up and keep typing. nobody cares
-		GraphLib.getController(world).onChanged(pos)
+		GraphLib.getController(world).updateNodes(pos)
 	}
 	
 	override fun getWeakRedstonePower(

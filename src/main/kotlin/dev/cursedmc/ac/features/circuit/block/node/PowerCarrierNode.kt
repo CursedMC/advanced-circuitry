@@ -2,9 +2,7 @@ package dev.cursedmc.ac.features.circuit.block.node
 
 import com.kneelawk.graphlib.graph.BlockNode
 import com.kneelawk.graphlib.graph.BlockNodeDecoder
-import com.kneelawk.graphlib.graph.BlockNodeWrapper
 import com.kneelawk.graphlib.graph.NodeView
-import com.kneelawk.graphlib.graph.struct.Node
 import com.kneelawk.graphlib.wire.FullWireBlockNode
 import com.kneelawk.graphlib.wire.WireConnectionFilter
 import dev.cursedmc.ac.features.circuit.util.NetNode
@@ -26,7 +24,8 @@ abstract class PowerCarrierNode(private val filter: WireConnectionFilter) : Full
 	override fun findConnections(
 		world: ServerWorld,
 		nodeView: NodeView,
-		pos: BlockPos
+		pos: BlockPos,
+		self: NetNode
 	): MutableCollection<NetNode> {
 		val collector = ArrayList<NetNode>()
 		
@@ -48,7 +47,8 @@ abstract class PowerCarrierNode(private val filter: WireConnectionFilter) : Full
 		world: ServerWorld,
 		nodeView: NodeView,
 		pos: BlockPos,
-		other: Node<BlockNodeWrapper<*>>
+		self: NetNode,
+		other: NetNode
 	): Boolean {
 		return other.pos.isWithinDistance(pos, 1.4142135623730951) && filter.accepts(this, other.node)
 	}
