@@ -14,7 +14,7 @@ object PowerManager : Initializable {
         GraphLib.getController(world).getGraphsInPos(pos).forEach { updateGraph(world, it) }
     }
 	
-	private fun updateGraph(world: ServerWorld, id: Long) {
+	fun updateGraph(world: ServerWorld, id: Long) {
 		val controller = GraphLib.getController(world)
 		
 		// Sometimes graphs that were registered for an update will have been removed by the time this has been called,
