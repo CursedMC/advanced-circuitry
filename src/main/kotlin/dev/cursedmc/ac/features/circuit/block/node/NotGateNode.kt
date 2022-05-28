@@ -1,7 +1,6 @@
 package dev.cursedmc.ac.features.circuit.block.node
 
 import com.kneelawk.graphlib.GraphLib
-import com.kneelawk.graphlib.graph.NodeView
 import dev.cursedmc.ac.features.circuit.PowerManager
 import dev.cursedmc.ac.features.circuit.block.component.PoweredComponentBlock
 import dev.cursedmc.ac.features.circuit.util.NetNode
@@ -22,29 +21,7 @@ sealed class NotGateNode(side: Direction) : GateNode(InputType.STRAIGHT, side) {
 		PowerManager.update(world, pos)
 	}
 	
-	abstract val nodeSide: Direction
-	
-	override fun findConnections(world: ServerWorld, nodeView: NodeView, pos: BlockPos): MutableCollection<NetNode> {
-		val list = super.findConnections(world, nodeView, pos)
-		list.retainAll { isCorrectDirection(pos, it) }
-		return list
-	}
-	
-	override fun canConnect(
-		world: ServerWorld, nodeView: NodeView, pos: BlockPos, other: NetNode
-	): Boolean {
-		return super.canConnect(world, nodeView, pos, other) && isCorrectDirection(pos, other)
-	}
-	
-	private fun isCorrectDirection(myPos: BlockPos, other: NetNode): Boolean {
-		val diff = other.pos.subtract(myPos)
-		val dir = Direction.fromVector(BlockPos(diff.x, 0, diff.z))
-		return dir == nodeSide
-	}
-	
 	data class Input(private val side: Direction) : NotGateNode(side), GateInput {
-		override val nodeSide: Direction = side
-		
 		override fun setState(world: World, self: NetNode, power: Boolean) {
 			val blockState = world.getBlockState(self.pos)
 			world.setBlockState(self.pos, blockState.with(PoweredComponentBlock.POWERED, !power))
@@ -59,9 +36,8 @@ sealed class NotGateNode(side: Direction) : GateNode(InputType.STRAIGHT, side) {
 			}
 		}
 	}
+	
 	data class Output(private val side: Direction) : NotGateNode(side), GateOutput {
-		override val nodeSide: Direction = side.opposite
-		
 		override fun setState(world: World, self: NetNode, power: Boolean) {
 			// do nothing here
 		}

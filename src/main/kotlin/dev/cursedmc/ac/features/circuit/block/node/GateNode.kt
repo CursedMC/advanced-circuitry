@@ -1,6 +1,7 @@
 package dev.cursedmc.ac.features.circuit.block.node
 
 import com.kneelawk.graphlib.graph.BlockNode
+import com.kneelawk.graphlib.graph.NodeView
 import dev.cursedmc.ac.features.circuit.PowerManager
 import dev.cursedmc.ac.features.circuit.block.component.PoweredComponent
 import dev.cursedmc.ac.features.circuit.block.component.PoweredComponentBlock.Companion.POWERED
@@ -21,6 +22,24 @@ abstract class GateNode(private val inputType: InputType, private val side: Dire
 	
 	override fun getState(world: World, self: NetNode): Boolean {
 		return world.getBlockState(self.pos).get(POWERED)
+	}
+	
+	override fun findConnections(world: ServerWorld, nodeView: NodeView, pos: BlockPos): MutableCollection<NetNode> {
+		val list = super.findConnections(world, nodeView, pos)
+		list.retainAll { isCorrectDirection(pos, it) } // only keep valid outputs
+		return list
+	}
+	
+	private fun isCorrectDirection(myPos: BlockPos, other: NetNode): Boolean {
+		val diff = other.pos.subtract(myPos)
+		val dir = Direction.fromVector(BlockPos(diff.x, 0, diff.z))
+		return dir == inputType.ofCardinal(inputType.ofCardinal(side).opposite)
+	}
+	
+	override fun canConnect(
+		world: ServerWorld, nodeView: NodeView, pos: BlockPos, other: NetNode
+	): Boolean {
+		return super.canConnect(world, nodeView, pos, other) && isCorrectDirection(pos, other)
 	}
 	
 	override fun getSourceOutput(world: World, self: NetNode): Boolean {
@@ -57,6 +76,24 @@ abstract class GateNode(private val inputType: InputType, private val side: Dire
 				NotGateNode.Input(side)
 			} else {
 				NotGateNode.Output(side)
+			}
+		}
+	}
+	
+	enum class InputType {
+		LEFT,
+		RIGHT,
+		STRAIGHT,
+		;
+		
+		/**
+		 * Gets the cardinal direction to the right, left, or "none" of the specified cardinal direction.
+		 */
+		fun ofCardinal(cardinal: Direction): Direction {
+			return when (this) {
+				RIGHT -> cardinal.rotateYClockwise()
+				LEFT -> cardinal.rotateYCounterclockwise()
+				STRAIGHT -> cardinal
 			}
 		}
 	}
