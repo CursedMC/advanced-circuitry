@@ -24,8 +24,8 @@ abstract class GateNode(private val inputType: InputType, private val side: Dire
 		return world.getBlockState(self.pos).get(POWERED)
 	}
 	
-	override fun findConnections(world: ServerWorld, nodeView: NodeView, pos: BlockPos): MutableCollection<NetNode> {
-		val list = super.findConnections(world, nodeView, pos)
+	override fun findConnections(world: ServerWorld, nodeView: NodeView, pos: BlockPos, self: NetNode): MutableCollection<NetNode> {
+		val list = super.findConnections(world, nodeView, pos, self)
 		list.retainAll { isCorrectDirection(pos, it) } // only keep valid outputs
 		return list
 	}
@@ -37,9 +37,9 @@ abstract class GateNode(private val inputType: InputType, private val side: Dire
 	}
 	
 	override fun canConnect(
-		world: ServerWorld, nodeView: NodeView, pos: BlockPos, other: NetNode
+		world: ServerWorld, nodeView: NodeView, pos: BlockPos, self: NetNode, other: NetNode
 	): Boolean {
-		return super.canConnect(world, nodeView, pos, other) && isCorrectDirection(pos, other)
+		return super.canConnect(world, nodeView, pos, self, other) && isCorrectDirection(pos, other)
 	}
 	
 	override fun getSourceOutput(world: World, self: NetNode): Boolean {
@@ -65,7 +65,7 @@ abstract class GateNode(private val inputType: InputType, private val side: Dire
 		return tag
 	}
 	
-	override fun onChanged(world: ServerWorld, pos: BlockPos) {
+	override fun onConnectionsChanged(world: ServerWorld, pos: BlockPos, self: NetNode) {
 		PowerManager.update(world, pos)
 	}
 	
